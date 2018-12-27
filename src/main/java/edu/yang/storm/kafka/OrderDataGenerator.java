@@ -1,4 +1,4 @@
-package edu.yang.storm.trident;
+package edu.yang.storm.kafka;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -6,7 +6,6 @@ import java.util.Random;
 
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
-import org.apache.kafka.clients.producer.KafkaProducer;
 
 public class OrderDataGenerator {
     // order记录
@@ -63,9 +62,23 @@ public class OrderDataGenerator {
     }
 
     public static void main(String [] args){
-//        KafkaProducer kafkaProducer = new KafkaProducer();
+        KafkaProducer kafkaProducer = new KafkaProducer();
+        Producer<String,String> producer = kafkaProducer.getKafkaProducer("10.113.9.108:9092");
 
-//        Producer<String,String> producer = KafkaProducer
+        for (; ; ) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            String msgKey = System.currentTimeMillis()+ "";
+            String msg = OrderDataGenerator.generateOrderRecord();
+            // 如果topic不存在，则会自动创建，默认replication-factor为1，partitions为0
+            KeyedMessage<String, String> data = kafkaProducer.getKeyedMessage("test", msgKey, msg);
+
+            kafkaProducer.sendMassage(producer, data);
+        }
+        //kafkaProducer.close(producer);
     }
-
 }
